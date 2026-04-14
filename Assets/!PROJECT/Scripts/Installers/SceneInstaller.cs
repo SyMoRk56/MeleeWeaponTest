@@ -5,7 +5,7 @@ namespace Game
 {
     public class SceneInstaller : MonoInstaller
     {
-        [SerializeField] 
+        [SerializeField]
         public override void InstallBindings()
         {
             

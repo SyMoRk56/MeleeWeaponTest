@@ -7,6 +7,8 @@ namespace Game
         public Vector2 Axis => new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
         public bool IsJumpPressed => Input.GetKeyDown(KeyCode.Space);
+
+        public bool IsRunPressed => Input.GetKey(KeyCode.LeftShift);
     }
 
 }

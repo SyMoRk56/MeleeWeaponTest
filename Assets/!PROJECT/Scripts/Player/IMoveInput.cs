@@ -6,5 +6,7 @@ namespace Game
     {
         Vector2 Axis { get; }
         bool IsJumpPressed { get; }
+
+        bool IsRunPressed { get; }
     }
 }
