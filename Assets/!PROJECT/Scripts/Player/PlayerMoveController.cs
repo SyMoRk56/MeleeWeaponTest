@@ -33,7 +33,7 @@ public class PlayerMoveController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        Vector3 moveDirection = (_manager.Orientation.forward * _input.Axis.y) + (_manager.Orientation.right * _input.Axis.x);
+        Vector3 moveDirection = (_manager.Orientation.forward * _input.MoveAxis.y) + (_manager.Orientation.right * _input.MoveAxis.x);
         moveDirection.y = 0;
         moveDirection.Normalize();
 
