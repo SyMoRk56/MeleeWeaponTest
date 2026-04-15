@@ -1,4 +1,5 @@
 ﻿using Game;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Windows;
 using Zenject;
@@ -32,22 +33,31 @@ public class PlayerMoveController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        Vector2 inputDirection = _manager.Orientation.forward * _input.Axis.y + _manager.Orientation.right * _input.Axis.x;
-        Vector3 moveDirection = new Vector3(inputDirection.x, 0, inputDirection.y);
+        Vector3 moveDirection = (_manager.Orientation.forward * _input.Axis.y) + (_manager.Orientation.right * _input.Axis.x);
+        moveDirection.y = 0;
+        moveDirection.Normalize();
 
-        if(moveDirection.magnitude > 0.1f)
+        float targetSpeed = _input.IsRunPressed ? _stats.runSpeed : _stats.walkSpeed;
+
+        if (moveDirection.sqrMagnitude > 0.01f)
         {
-            _accelerationTime += Time.fixedDeltaTime / _stats.accelerationTime;
+            _accelerationTime = Mathf.Clamp01(_accelerationTime + Time.fixedDeltaTime / _stats.accelerationTime);
             float curveModifier = _stats.movementCurve.Evaluate(_accelerationTime);
 
-            float speed = _input.IsRunPressed ? _stats.runSpeed : _stats.walkSpeed;
+            _rb.AddForce(10f * curveModifier * targetSpeed * moveDirection, ForceMode.Acceleration);
 
-            _rb.AddForce(moveDirection.normalized * speed * curveModifier);
+            Vector3 horizontalVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
+            if (horizontalVelocity.sqrMagnitude > targetSpeed * targetSpeed)
+            {
+                Vector3 limitedVelocity = horizontalVelocity.normalized * targetSpeed;
+                _rb.linearVelocity = new Vector3(limitedVelocity.x, _rb.linearVelocity.y, limitedVelocity.z);
+            }
         }
         else
         {
             _accelerationTime = 0;
+            Vector3 horizontalVelocity = new Vector3(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
+            _rb.linearVelocity = Vector3.Lerp(_rb.linearVelocity, new Vector3(0, _rb.linearVelocity.y, 0), Time.fixedDeltaTime * 10f);
         }
-
     }
 }

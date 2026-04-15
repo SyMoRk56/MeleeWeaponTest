@@ -29,5 +29,9 @@ namespace Game
             SetCameraRotationEnabled(value);
             SetMovementEnabled(value);
         }
+        private void Start()
+        {
+            SetCursorLock(true);
+        }
     }
 }

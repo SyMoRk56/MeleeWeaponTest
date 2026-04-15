@@ -7,11 +7,13 @@ namespace Game
     {
 
         [Inject] private PlayerParams _params;
-        [Inject] private PlayerMoveInput _input;
+        private PlayerMoveInput _input;
         private Transform _orientation;
         private float _xRotation, _yRotation;
+        [Inject]
         public void Construct(PlayerManager playerManager)
         {
+            _input = playerManager.PlayerMoveInput;
             _orientation = playerManager.Orientation;
         }
         private void Update()

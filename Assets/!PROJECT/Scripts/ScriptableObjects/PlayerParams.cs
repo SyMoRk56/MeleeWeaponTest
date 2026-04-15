@@ -5,10 +5,15 @@ public class PlayerParams : ScriptableObject
 {
     public float walkSpeed;
     public float runSpeed;
-    public LayerMask whatIsGround = LayerMask.NameToLayer("Ground");
+    [HideInInspector] public LayerMask whatIsGround;
     public float maxStamina;
     public AnimationCurve movementCurve;
     public float accelerationTime;
 
     public Vector2 sensitivity;
+
+    private void OnEnable()
+    {
+        whatIsGround = LayerMask.NameToLayer("Ground");
+    }
 }
