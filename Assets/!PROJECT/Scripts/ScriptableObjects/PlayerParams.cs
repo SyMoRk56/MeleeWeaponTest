@@ -9,4 +9,6 @@ public class PlayerParams : ScriptableObject
     public float maxStamina;
     public AnimationCurve movementCurve;
     public float accelerationTime;
+
+    public Vector2 sensitivity;
 }

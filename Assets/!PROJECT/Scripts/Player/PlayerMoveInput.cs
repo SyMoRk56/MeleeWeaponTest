@@ -9,6 +9,8 @@ namespace Game
         public bool IsJumpPressed => Input.GetKeyDown(KeyCode.Space);
 
         public bool IsRunPressed => Input.GetKey(KeyCode.LeftShift);
+
+        public Vector2 MouseAxis => new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
     }
 
 }

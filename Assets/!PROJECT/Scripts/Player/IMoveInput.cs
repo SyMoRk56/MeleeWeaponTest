@@ -8,5 +8,7 @@ namespace Game
         bool IsJumpPressed { get; }
 
         bool IsRunPressed { get; }
+
+        Vector2 MouseAxis { get; }
     }
 }
