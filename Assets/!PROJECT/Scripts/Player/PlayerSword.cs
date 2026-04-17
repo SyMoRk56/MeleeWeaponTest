@@ -16,8 +16,8 @@ public class PlayerSword : MonoBehaviour
     [SerializeField] private float _mouseSensitivity = 0.5f;
     [SerializeField] private float _prepareDuration = 0.2f;
 
-    [SerializeField] private float _maxHorizontalAngle = 90f;
-    [SerializeField] private float _maxVerticalAngle = 180f;
+    [SerializeField] private float _minHorizontalAngle = -90f, _maxHorizontalAngle = 90;
+    [SerializeField] private float _minVerticalAngle = -180f, _maxVerticalAngle = 180;
     [Range(1f, 20f)][SerializeField] private float _weightIntensity = 5f;
 
     private float _holdTime;
@@ -42,7 +42,6 @@ public class PlayerSword : MonoBehaviour
     
     private void HandleInput()
     {
-        print(_input.IsLeftMousePressed);
         if (_input.IsLeftMousePressed)
         {
             _holdTime += Time.deltaTime;
@@ -50,8 +49,8 @@ public class PlayerSword : MonoBehaviour
             _rawMouseDelta.x += _input.MouseAxis.x * _mouseSensitivity;
             _rawMouseDelta.y += _input.MouseAxis.y * _mouseSensitivity;
 
-            _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x, -_maxHorizontalAngle, _maxHorizontalAngle);
-            _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y, -_maxVerticalAngle, _maxVerticalAngle);
+            _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x, _minHorizontalAngle, _maxHorizontalAngle);
+            _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y, _minVerticalAngle, _maxVerticalAngle);
         }
         else
         {

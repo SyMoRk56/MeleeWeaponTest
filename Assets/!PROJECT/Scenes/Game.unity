@@ -256,14 +256,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 224177273}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.5386947, y: 0.019846853, z: 0.012695029, w: 0.8421716}
-  m_LocalPosition: {x: 0.008, y: -0.4, z: 0.168}
+  m_LocalRotation: {x: 0.66072166, y: -0.018335242, z: 0.016147634, w: 0.7502333}
+  m_LocalPosition: {x: 0.008, y: -0.68, z: 0.168}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 767360394}
   m_Father: {fileID: 422792907}
-  m_LocalEulerAnglesHint: {x: -65.21, y: 2.7, z: 0}
+  m_LocalEulerAnglesHint: {x: 82.74, y: -2.8, z: 0}
 --- !u!114 &224177275
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,16 +276,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f0e567576a7d1840be89ed330c9d00d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSword
-  _idlePos: {x: 0.008, y: -0.4, z: 0.168}
+  _idlePos: {x: 0.008, y: -0.68, z: 0.168}
   _preparePos: {x: 0.008, y: -0.4, z: 0.168}
-  _idleRot: {x: 294.79, y: 2.6999972, z: -0.00000025452727}
+  _idleRot: {x: 82.73998, y: 357.2, z: 0.0000008445023}
   _prepareRot: {x: 294.79, y: 2.6999972, z: -0.00000025452727}
   _lerpSpeed: 10
   _mouseSensitivity: 3
-  _prepareDuration: 0.2
+  _prepareDuration: 0.3
+  _minHorizontalAngle: -90
   _maxHorizontalAngle: 50
-  _maxVerticalAngle: 90
-  _weightIntensity: 13.5
+  _minVerticalAngle: -80
+  _maxVerticalAngle: 45
+  _weightIntensity: 6.21
 --- !u!1 &242228946
 GameObject:
   m_ObjectHideFlags: 0
