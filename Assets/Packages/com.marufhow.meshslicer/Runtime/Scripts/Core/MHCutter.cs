@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using com.marufhow.meshslicer.extensions;
 using com.marufhow.meshslicer.model;
@@ -23,12 +23,16 @@ namespace com.marufhow.meshslicer.core
         public void Cut(GameObject cutObject,Vector3 cutPoint, Vector3 cutNormal)
         {
             // The InverseTransformDirection method is used here to convert the cutNormal from world space to the local space of the cutObject.
-            Plane plane = new Plane(cutObject.transform.InverseTransformDirection(-cutNormal),  
-                cutObject.transform.InverseTransformPoint(cutPoint));
-            
+            Vector3 localPoint = cutObject.transform.InverseTransformPoint(cutPoint);
+            Vector3 localNormal = cutObject.transform.InverseTransformDirection(cutNormal);
+
+            // Создаем плоскость в Local Space. 
+            // Важно: Plane в Unity строится по нормали и точке.
+            Plane plane = new Plane(localNormal, localPoint);
+
             _mesh = cutObject.GetComponent<MeshFilter>().mesh;
             _addedVertices = new List<Vector3>();
-            
+
             _leftMesh = cutObject.GetComponent<MHMesh>();
             if (_leftMesh == null)
             {
@@ -56,12 +60,14 @@ namespace com.marufhow.meshslicer.core
                     var trisC = subMeshTriangles[j + 2];
                   
                     Triangle triangle =  _mesh.ExtractTriangle(trisA, trisB, trisC, i);
-                    
-                    bool isLeftSideTrisA = plane.GetSide(cutObject.transform.TransformPoint(_mesh.vertices[trisA]));
-                    bool isLeftSideTrisB = plane.GetSide(cutObject.transform.TransformPoint(_mesh.vertices[trisB]));
-                    bool isLeftSideTrisC = plane.GetSide(cutObject.transform.TransformPoint(_mesh.vertices[trisC]));
 
- 
+                    // Правильное определение сторон в локальном пространстве объекта
+                    bool isLeftSideTrisA = plane.GetSide(_mesh.vertices[trisA]);
+                    bool isLeftSideTrisB = plane.GetSide(_mesh.vertices[trisB]);
+                    bool isLeftSideTrisC = plane.GetSide(_mesh.vertices[trisC]);
+
+
+
                     if (isLeftSideTrisA == isLeftSideTrisB && isLeftSideTrisB == isLeftSideTrisC)
                     {
                         // All vertices are on the same side, either fully left or fully right

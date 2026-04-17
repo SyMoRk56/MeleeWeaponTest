@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using com.marufhow.meshslicer.model;
@@ -26,6 +26,7 @@ namespace com.marufhow.meshslicer.core
         public List<Material> Materials => _materials;
         private void OnEnable()
         {
+            Invoke(nameof(DelaySetLayer), 1f);
             // Check if the MeshFilter is attached, if not, add it.
             if (_meshFilter == null)
             {
@@ -66,6 +67,12 @@ namespace com.marufhow.meshslicer.core
             _materials = _meshRenderer.materials.ToList();
              
         }
+
+        private void DelaySetLayer()
+        {
+            gameObject.tag = "Slicable";
+        }
+
         public void AddTriangle(Triangle triangle)
         {
             var v = _vertices.Count;
