@@ -50,6 +50,7 @@
   <Project Path="Unity.Multiplayer.Center.Common.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
   <Project Path="Zenject-TestFramework.csproj" />
@@ -62,8 +63,9 @@
   <Project Path="Unity.ShaderGraph.Utilities.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="Zenject-PoolMonitor-Editor.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="com.marufhow.meshslicer.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
+  <Project Path="com.marufhow.meshslicer.editor.csproj" />
   <Project Path="Unity.Rendering.LightTransport.Editor.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="UniTask.Editor.csproj" />
