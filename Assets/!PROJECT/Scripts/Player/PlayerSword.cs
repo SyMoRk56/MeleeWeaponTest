@@ -33,6 +33,10 @@ public class PlayerSword : MonoBehaviour
 
     private Vector3 _lastTipPosition;
     private float _currentVelocity;
+    private float _currentZ;
+    private float _zVelocity;
+    private Quaternion _lastTipRotation;
+
 
     private enum ESwordState { Idle, Prepare, ActiveSwing }
     private IMoveInput _input;
@@ -56,6 +60,7 @@ public class PlayerSword : MonoBehaviour
         HandleInput();
         UpdateState();
         ApplyTransform();
+        _lastTipRotation = _tip.rotation;
     }
 
     private void CalculateVelocity()
@@ -64,13 +69,28 @@ public class PlayerSword : MonoBehaviour
         _lastTipPosition = _tip.position;
     }
 
+    [SerializeField] private float _topThreshold = 30f; // Угол, при котором меч считается "наверху"
+
     private void HandleInput()
     {
         if (_input.IsLeftMousePressed)
         {
             _holdTime += Time.deltaTime;
-            _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x + _input.MouseAxis.x * _mouseSensitivity, -90, 90);
-            _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y + _input.MouseAxis.y * _mouseSensitivity, -180, 180);
+
+            // Читаем дельту мыши
+            float deltaX = _input.MouseAxis.x * _mouseSensitivity;
+            float deltaY = _input.MouseAxis.y * _mouseSensitivity;
+
+            // Если замах по вертикали (Y) уже высоко, блокируем изменение горизонтали (X)
+            // В твоей логике _rawMouseDelta.y отвечает за наклон (pitch)
+            print(_rawMouseDelta.y);
+            if (_rawMouseDelta.y > _topThreshold)
+            {
+                deltaX = 0; // Блокируем движение вбок
+            }
+
+            _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x + deltaX, -90, 90);
+            _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y + deltaY, -180, 180);
         }
         else
         {
@@ -97,7 +117,27 @@ public class PlayerSword : MonoBehaviour
         Quaternion targetRot;
 
         if (_currentState == ESwordState.ActiveSwing)
-            targetRot = Quaternion.Euler(_prepareRot.x - _smoothedMouseDelta.y, _prepareRot.y + _smoothedMouseDelta.x, _prepareRot.z);
+        {
+            float deltaX = Mathf.Abs(Mathf.DeltaAngle(_tip.eulerAngles.x, _lastTipRotation.eulerAngles.x));
+            float deltaY = Mathf.Abs(Mathf.DeltaAngle(_tip.eulerAngles.y, _lastTipRotation.eulerAngles.y));
+
+            float horizontalInfluence = deltaY;
+            float verticalInfluence = deltaX;
+            float targetZ = 0f;
+            if (horizontalInfluence > verticalInfluence)
+            {
+                targetZ = -90;
+            }
+
+            _currentZ = Mathf.SmoothDamp(_currentZ, targetZ, ref _zVelocity, 0.1f);
+
+            targetRot = Quaternion.Euler(
+                _prepareRot.x - _smoothedMouseDelta.y ,
+                _prepareRot.y + _smoothedMouseDelta.x,
+                _currentZ
+            );
+        }
+
         else if (_currentState == ESwordState.Prepare)
             targetRot = Quaternion.Euler(_prepareRot);
         else
@@ -105,6 +145,8 @@ public class PlayerSword : MonoBehaviour
 
         transform.localPosition = Vector3.Lerp(transform.localPosition, targetPos, Time.deltaTime * _lerpSpeed);
         transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRot, Time.deltaTime * _lerpSpeed);
+
+
     }
 
     public async UniTask CheckCollision(Collider other)
