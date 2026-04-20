@@ -22,6 +22,7 @@ namespace com.marufhow.meshslicer.core
         private List<Vector2> _uvs;
         public void Cut(GameObject cutObject,Vector3 cutPoint, Vector3 cutNormal)
         {
+            Debug.Log("Cut: " + gameObject.name);
             // The InverseTransformDirection method is used here to convert the cutNormal from world space to the local space of the cutObject.
             Vector3 localPoint = cutObject.transform.InverseTransformPoint(cutPoint);
             Vector3 localNormal = cutObject.transform.InverseTransformDirection(cutNormal);

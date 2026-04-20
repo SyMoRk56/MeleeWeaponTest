@@ -10,7 +10,7 @@ namespace Game
         [field: SerializeField] public Transform Orientation { get; private set; }
         [field: SerializeField] public Transform CameraGameobject { get; private set; }
 
-        [field: SerializeField] public PlayerSword PlayerSword { get; private set; }
+        [field: SerializeField] public Sword PlayerSword { get; private set; }
         public void SetMovementEnabled(bool enabled)
         {
 
