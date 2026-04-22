@@ -41,7 +41,6 @@ public class Shield : HoldableItem
     {
         if (_input.IsRightMousePressed)
         {
-            print("righ");
             float deltaX = _input.MouseAxis.x * _mouseSensitivity;
             float deltaY = _input.MouseAxis.y * _mouseSensitivity;
 

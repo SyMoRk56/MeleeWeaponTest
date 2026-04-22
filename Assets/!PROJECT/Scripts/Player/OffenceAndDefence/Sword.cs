@@ -80,12 +80,13 @@ public class Sword : HoldableItem
             float deltaY = Mathf.Abs(Mathf.DeltaAngle(_tip.eulerAngles.y, _lastTipRotation.eulerAngles.y));
 
             float targetZ = (deltaY > deltaX) ? -90f : 0f;
-            _currentZ = Mathf.SmoothDamp(_currentZ, targetZ, ref _zVelocity, 0.1f);
-
+            _currentZ = Mathf.SmoothDamp(_currentZ, targetZ, ref _zVelocity, 0.2f);
+            //_currentZ = targetZ;
+            bool isVertical = Mathf.Abs((_tip.position - _preLastTipPosition).x) * 2f < Mathf.Abs((_tip.position - _preLastTipPosition).y);
             return Quaternion.Euler(
                 _prepareRot.x - _smoothedMouseDelta.y,
                 _prepareRot.y + _smoothedMouseDelta.x,
-                0//_currentZ
+                isVertical ? 0 : _currentZ
             );
         }
 
@@ -102,6 +103,7 @@ public class Sword : HoldableItem
                 return;
             var angularSpeed = (_tip.position - _preLastTipPosition).magnitude / Time.deltaTime;
             var dotProduct = Mathf.Abs(Vector2.Dot((_tip.position - _preLastTipPosition).normalized, _tip.right));
+            
             Debug.Log("Sword slice: " + "Angular Speed: " + angularSpeed + " " + "Hit flatness: " + dotProduct);
 
             if (angularSpeed < _minSliceVelocity)
