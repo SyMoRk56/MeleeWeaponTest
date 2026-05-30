@@ -40,7 +40,6 @@ public class Sword : HoldableItem
             _preLastTipPosition = _lastTipPosition;
             _lastTipPosition = _tip.position;
             _lastTipRotation = _tip.rotation;
-            
         }
 
         if (_bladeCollider)
@@ -105,14 +104,21 @@ public class Sword : HoldableItem
             var dotProduct = Mathf.Abs(Vector2.Dot((_tip.position - _preLastTipPosition).normalized, _tip.right));
             
             Debug.Log("Sword slice: " + "Angular Speed: " + angularSpeed + " " + "Hit flatness: " + dotProduct);
-
+            
             if (angularSpeed < _minSliceVelocity)
                 return;
             if (dotProduct > 0.3f)
                 return;
+            LockMovement(0.1f).Forget();
 
             _cutter.Cut(other.gameObject, _tip.position, _tip.right);
         }
     }
-
+    protected async virtual UniTask LockMovement(float secs)
+    {
+        _canMove = false;
+        _rawMouseDelta = Vector2.zero;
+        await UniTask.WaitForSeconds(secs);
+        _canMove = true;
+    }
 }
