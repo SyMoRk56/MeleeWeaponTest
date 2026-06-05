@@ -6,23 +6,25 @@ using UnityEngine;
 
 namespace com.marufhow.meshslicer.core
 {
-    [Serializable] public class SubMeshIndices
+    [Serializable]
+    public class SubMeshIndices
     {
         public List<int> indices = new();
     }
     public class MHMesh : MonoBehaviour
     {
-        
+
         [Header("Only for observe in Inspector, not for set anything")]
         public List<Vector3> _vertices = new List<Vector3>();
         public List<Vector3> _normals = new List<Vector3>();
         public List<Vector2> _uvs = new List<Vector2>();
         public List<SubMeshIndices> _listOfSubMeshIndices = new();
-        
+
         private MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
         private MeshCollider _meshCollider;
         private List<Material> _materials;
+        private Rigidbody _rigidbody;
         public List<Material> Materials => _materials;
         private void OnEnable()
         {
@@ -46,7 +48,7 @@ namespace com.marufhow.meshslicer.core
                     _meshRenderer = gameObject.AddComponent<MeshRenderer>();
                 }
             }
-            
+
             Collider[] allColliders = gameObject.GetComponents<Collider>();
             foreach (var collider in allColliders)
             {
@@ -54,18 +56,20 @@ namespace com.marufhow.meshslicer.core
                 {
                     Destroy(collider);
                 }
-                else _meshCollider = GetComponent<MeshCollider>();
+                else
+                    _meshCollider = GetComponent<MeshCollider>();
             }
             if (_meshCollider == null)
             {
                 _meshCollider = gameObject.AddComponent<MeshCollider>();
             }
+            
             _meshCollider.sharedMesh = _meshFilter.mesh;
             _meshCollider.convex = true;
-            
-             
+
+
             _materials = _meshRenderer.materials.ToList();
-             
+
         }
 
         private void DelaySetLayer()
@@ -80,13 +84,14 @@ namespace com.marufhow.meshslicer.core
             _normals.AddRange(triangle.Normals);
             _uvs.AddRange(triangle.UVs);
 
-           
+
             if (_listOfSubMeshIndices.Count < triangle.SubMeshIndex + 1)
                 for (var i = _listOfSubMeshIndices.Count; i < triangle.SubMeshIndex + 1; i++)
                 {
                     _listOfSubMeshIndices.Add(new SubMeshIndices());
                 }
-            for (var i = 0; i < 3; i++) _listOfSubMeshIndices[triangle.SubMeshIndex].indices.Add(v + i);
+            for (var i = 0; i < 3; i++)
+                _listOfSubMeshIndices[triangle.SubMeshIndex].indices.Add(v + i);
         }
 
         public void Clear()
@@ -101,7 +106,7 @@ namespace com.marufhow.meshslicer.core
         {
             var mesh = new Mesh();
             _meshFilter.mesh = mesh;
-            
+
             mesh.SetVertices(_vertices);
             mesh.SetNormals(_normals);
             mesh.SetUVs(0, _uvs);
@@ -116,30 +121,56 @@ namespace com.marufhow.meshslicer.core
             {
                 _materials = mats;
             }
-          
+
             if (_materials != null && _materials.Count < mesh.subMeshCount)
             {
                 for (var i = 0; i < mesh.subMeshCount; i++)
                 {
                     var materials = _meshRenderer.materials;
                     var lastMat = materials[^1];
-                    if(i >= _materials.Count)
+                    if (i >= _materials.Count)
                         _materials.Add(lastMat);
                 }
             }
 
-            if (_materials != null) _meshRenderer.materials = _materials.ToArray();
+            if (_materials != null)
+                _meshRenderer.materials = _materials.ToArray();
 
 
             _meshCollider.sharedMesh = mesh;
             _meshCollider.convex = true;
-            
-           
-             
-        }
 
-     
+            
+
+        }
+        public void CalculateRigidbodyMass(float k)
+        {
+            if (_rigidbody == null)
+            {
+                _rigidbody = GetComponent<Rigidbody>();
+            }
+            _rigidbody.mass = Mathf.Clamp(CalculateMeshVolume(_meshCollider.sharedMesh, transform.localScale), 0.000001f, Mathf.Infinity) * k;
+        }
+        public float CalculateMeshVolume(Mesh mesh, Vector3 scale)
+        {
+            Vector3[] vertices = mesh.vertices;
+            int[] triangles = mesh.triangles;
+            double volume = 0;
+
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                Vector3 p1 = vertices[triangles[i]];
+                Vector3 p2 = vertices[triangles[i + 1]];
+                Vector3 p3 = vertices[triangles[i + 2]];
+
+                volume += Vector3.Dot(p1, Vector3.Cross(p2, p3)) / 6.0f;
+            }
+
+            float scaleFactor = Mathf.Abs(scale.x * scale.y * scale.z);
+
+            return Mathf.Abs((float)volume) * scaleFactor;
+        }
     }
 
-    
+
 }
