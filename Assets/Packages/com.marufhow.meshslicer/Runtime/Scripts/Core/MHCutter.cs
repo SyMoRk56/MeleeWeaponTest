@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using Random = System.Random;
+using System.Linq;
 
 namespace com.marufhow.meshslicer.core
 {
@@ -21,13 +22,14 @@ namespace com.marufhow.meshslicer.core
         private List<Vector3> _addedVertices;
         private List<Vector3> _fillAreaVertex;
         private List<Vector2> _uvs;
+        [SerializeField] private GameObject _bloodPrefab;
         public void Cut(GameObject cutObject, Vector3 cutPoint, Vector3 cutNormal)
         {
             // The InverseTransformDirection method is used here to convert the cutNormal from world space to the local space of the cutObject.
             Vector3 localPoint = cutObject.transform.InverseTransformPoint(cutPoint);
             Vector3 localNormal = cutObject.transform.InverseTransformDirection(cutNormal);
 
-            
+
             // Создаем плоскость в Local Space. 
             // Важно: Plane в Unity строится по нормали и точке.
             Plane plane = new Plane(localNormal, localPoint);
@@ -43,7 +45,7 @@ namespace com.marufhow.meshslicer.core
             float massScale = _leftMesh.CalculateMeshVolume(_mesh, cutObject.transform.localScale) * cutObject.GetComponent<Rigidbody>().mass;
             _rightSlicedGameObject = new GameObject($"Sliced {_count++}");
             _rightMesh = _rightSlicedGameObject.GetComponent<MHMesh>();
-            
+
             if (_rightMesh == null)
             {
                 _rightMesh = _rightSlicedGameObject.AddComponent<MHMesh>();
@@ -100,15 +102,93 @@ namespace com.marufhow.meshslicer.core
 
             _rightSlicedGameObject.transform.position = cutObject.transform.position + Vector3.right * 0.1f;
             _rightSlicedGameObject.transform.rotation = cutObject.transform.rotation;
-            _rightSlicedGameObject.transform.localScale = cutObject.transform.localScale;
+            _rightSlicedGameObject.transform.localScale = cutObject.transform.lossyScale;
             var rightRb = _rightSlicedGameObject.AddComponent<Rigidbody>();
             rightRb.AddForce(Vector3.right, ForceMode.Impulse);
-            
+
             _leftMesh.CalculateRigidbodyMass(massScale);
             _rightMesh.CalculateRigidbodyMass(massScale);
+            GenerateBlood(-localNormal, _leftMesh);
+            GenerateBlood(localNormal, _rightMesh);
         }
 
+        public void GenerateBlood(Vector3 normal, MHMesh mesh)
+        {
 
+            Vector3 center = _fillAreaVertex.Aggregate(Vector3.zero, (current, next) => current + next) / _fillAreaVertex.Count;
+            if (_fillAreaVertex.Count == 0)
+            {
+                center = Vector3.zero;
+            }
+            float totalArea = 0;
+            for (int j = 0; j < _fillAreaVertex.Count; j++)
+            {
+                Vector3 worldA = transform.TransformPoint(_fillAreaVertex[j]);
+                Vector3 worldB = transform.TransformPoint(_fillAreaVertex[(j + 1) % _fillAreaVertex.Count]);
+                Vector3 worldC = transform.TransformPoint(center);
+
+
+                Vector3 side1 = worldB - worldA;
+                Vector3 side2 = worldC - worldA;
+
+                float triangleArea = Vector3.Cross(side1, side2).magnitude * 0.5f;
+
+                totalArea += triangleArea;
+            }
+            int sourcesCount = Mathf.Clamp((int)Mathf.Ceil(1 * totalArea), 1, _fillAreaVertex.Count - 1);
+
+            List<int> visitedVertexes = new();
+            for (int s = 0; s < sourcesCount; s++)
+            {
+                if (_fillAreaVertex.Count == 0)
+                    continue;
+                int randomVertexIndex = UnityEngine.Random.Range(0, _fillAreaVertex.Count - 1);
+                while (visitedVertexes.Contains(randomVertexIndex))
+                {
+                    randomVertexIndex = UnityEngine.Random.Range(0, _fillAreaVertex.Count - 1);
+                }
+                Vector3 A = _fillAreaVertex[randomVertexIndex % _fillAreaVertex.Count];
+                Vector3 B = _fillAreaVertex[(randomVertexIndex + 1) % _fillAreaVertex.Count];
+                Vector3 C = center;
+                float u = UnityEngine.Random.value;
+                float v = UnityEngine.Random.value;
+                if (u + v > 1)
+                {
+                    u = 1 - u;
+                    v = 1 - v;
+                }
+                float w = 1 - v - u;
+                Vector3 randomPoint = A * u + B * v + C * w;
+                GameObject blood = Instantiate(_bloodPrefab, mesh.transform);
+
+                blood.transform.localPosition = randomPoint;
+                blood.transform.rotation = Quaternion.LookRotation(normal);
+
+                ParticleSystem bloodParticle = blood.GetComponent<ParticleSystem>();
+                float distFromCenter = Vector3.Distance(center, randomPoint);
+                var mainModule = bloodParticle.main;
+                float startLifetime = Mathf.Clamp(1 / distFromCenter, .3f, 1);
+                float sizeMultiplier = Mathf.Clamp(mesh.CalculateMeshVolume(mesh._meshFilter.mesh, mesh.transform.localScale), .1f, 1) * .2f;
+                mainModule.startLifetimeMultiplier = startLifetime;
+                mainModule.startSizeMultiplier = sizeMultiplier;
+                bloodParticle.Play();
+                Debug.Log("MHCutter: Generate blood, " + mesh.name + " " + startLifetime + " " + sizeMultiplier + " " + bloodParticle.isPlaying);
+            }
+            GameObject mainBlood = Instantiate(_bloodPrefab, mesh.transform);
+
+            mainBlood.transform.localPosition = center;
+            mainBlood.transform.rotation = Quaternion.LookRotation(normal);
+
+            ParticleSystem mainBloodParticle = mainBlood.GetComponent<ParticleSystem>();
+            var mainMainModule = mainBloodParticle.main;
+            float mainSizeMultiplier = Mathf.Clamp(mesh.CalculateMeshVolume(mesh._meshFilter.mesh, mesh.transform.localScale), .1f, 1) * .4f;
+            mainMainModule.startSizeMultiplier = mainSizeMultiplier;
+            mainBloodParticle.Play();
+
+
+
+
+        }
         private void FillCuttingPlane(Plane plane)
         {
             _fillAreaVertex = new List<Vector3>();

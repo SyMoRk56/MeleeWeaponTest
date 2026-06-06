@@ -20,7 +20,7 @@ namespace com.marufhow.meshslicer.core
         public List<Vector2> _uvs = new List<Vector2>();
         public List<SubMeshIndices> _listOfSubMeshIndices = new();
 
-        private MeshFilter _meshFilter;
+        [HideInInspector] public MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
         private MeshCollider _meshCollider;
         private List<Material> _materials;
@@ -63,7 +63,7 @@ namespace com.marufhow.meshslicer.core
             {
                 _meshCollider = gameObject.AddComponent<MeshCollider>();
             }
-            
+
             _meshCollider.sharedMesh = _meshFilter.mesh;
             _meshCollider.convex = true;
 
@@ -140,7 +140,7 @@ namespace com.marufhow.meshslicer.core
             _meshCollider.sharedMesh = mesh;
             _meshCollider.convex = true;
 
-            
+
 
         }
         public void CalculateRigidbodyMass(float k)
