@@ -103,9 +103,22 @@ namespace com.marufhow.meshslicer.core
             _rightSlicedGameObject.transform.position = cutObject.transform.position + Vector3.right * 0.1f;
             _rightSlicedGameObject.transform.rotation = cutObject.transform.rotation;
             _rightSlicedGameObject.transform.localScale = cutObject.transform.lossyScale;
-            var rightRb = _rightSlicedGameObject.AddComponent<Rigidbody>();
-            rightRb.AddForce(Vector3.right, ForceMode.Impulse);
-
+            if (_rightSlicedGameObject.TryGetComponent(out Rigidbody rbr))
+            {
+                rbr.AddForce(-cutNormal * 3, ForceMode.VelocityChange);
+            }
+            else
+            {
+                _rightSlicedGameObject.AddComponent<Rigidbody>().AddForce(-cutNormal * 3, ForceMode.VelocityChange);
+            }
+            if (_leftMesh.TryGetComponent(out Rigidbody rbl))
+            {
+                rbl.AddForce(cutNormal * 3, ForceMode.VelocityChange);
+            }
+            else
+            {
+                _leftMesh.gameObject.AddComponent<Rigidbody>().AddForce(cutNormal * 3, ForceMode.VelocityChange);
+            }
             _leftMesh.CalculateRigidbodyMass(massScale);
             _rightMesh.CalculateRigidbodyMass(massScale);
             GenerateBlood(-localNormal, _leftMesh);

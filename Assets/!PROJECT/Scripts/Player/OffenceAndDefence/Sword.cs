@@ -121,7 +121,9 @@ public class Sword : HoldableItem
             float totalMovement = Mathf.Abs(movementDelta.x) + Mathf.Abs(movementDelta.y) + 0.0001f;
             float horizontalRatio = Mathf.Abs(movementDelta.x) / totalMovement;
 
-            float finalZ = Mathf.Lerp(0f, -90f, horizontalRatio);
+            float sharpRatio = horizontalRatio * horizontalRatio * (3f - 2f * horizontalRatio);
+            float finalZ = Mathf.Lerp(0f, -90f, sharpRatio);
+
 
             return Quaternion.Euler(
                 _prepareRot.x - _smoothedMouseDelta.y,
@@ -147,7 +149,7 @@ public class Sword : HoldableItem
 
             if (angularSpeed < _minSliceVelocity)
                 return;
-            if (dotProduct > 0.3f)
+            if (dotProduct > 0.4f)
                 return;
             LockMovement(0.1f).Forget();
 
