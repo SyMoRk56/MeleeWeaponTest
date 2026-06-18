@@ -53,13 +53,22 @@ public class Sword : HoldableItem
             float deltaX = _input.MouseAxis.x * _mouseSensitivity;
             float deltaY = _input.MouseAxis.y * _mouseSensitivity * 2;
 
-            if (_rawMouseDelta.y > _topThreshold)
-                deltaX = 0;
+            float totalDelta = Mathf.Abs(_rawMouseDelta.x) + Mathf.Abs(_rawMouseDelta.y) + 0.0001f;
+            float horizontalRatio = Mathf.Abs(_rawMouseDelta.x) / totalDelta;
+            float verticalRatio = Mathf.Abs(_rawMouseDelta.y) / totalDelta;
+
+            float combinedDelta = Mathf.Max(Mathf.Abs(_rawMouseDelta.x), Mathf.Abs(_rawMouseDelta.y));
+            float suppressionFactor = Mathf.Clamp01((combinedDelta - _topThreshold) / _topThreshold);
+
+            deltaX *= Mathf.Lerp(1f, horizontalRatio, suppressionFactor);
+            deltaY *= Mathf.Lerp(1f, verticalRatio, suppressionFactor);
 
             _holdTime += Time.deltaTime;
             _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x + deltaX, -90, 90);
             _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y + deltaY, -180, 180);
+
             _rawMouseDelta.x = Mathf.Lerp(_rawMouseDelta.x, 0, Time.deltaTime * 3);
+            _rawMouseDelta.y = Mathf.Lerp(_rawMouseDelta.y, 0, Time.deltaTime * 3);
         }
         else
         {
@@ -68,8 +77,9 @@ public class Sword : HoldableItem
         }
 
         _smoothedMouseDelta = Vector2.Lerp(_smoothedMouseDelta, _rawMouseDelta, Time.deltaTime * _weightIntensity);
-        
     }
+
+
 
     protected override Quaternion CalculateTargetRotation()
     {
@@ -80,12 +90,17 @@ public class Sword : HoldableItem
 
             float targetZ = (deltaY > deltaX) ? -90f : 0f;
             _currentZ = Mathf.SmoothDamp(_currentZ, targetZ, ref _zVelocity, 0.2f);
-            //_currentZ = targetZ;
-            bool isVertical = Mathf.Abs((_tip.position - _preLastTipPosition).x) * 2f < Mathf.Abs((_tip.position - _preLastTipPosition).y);
+
+            Vector3 movementDelta = _tip.position - _preLastTipPosition;
+            float totalMovement = Mathf.Abs(movementDelta.x) + Mathf.Abs(movementDelta.y) + 0.0001f;
+            float horizontalRatio = Mathf.Abs(movementDelta.x) / totalMovement;
+
+            float finalZ = Mathf.Lerp(0f, -90f, horizontalRatio);
+
             return Quaternion.Euler(
                 _prepareRot.x - _smoothedMouseDelta.y,
                 _prepareRot.y + _smoothedMouseDelta.x,
-                isVertical ? 0 : _currentZ
+                finalZ
             );
         }
 
@@ -93,6 +108,8 @@ public class Sword : HoldableItem
             ? Quaternion.Euler(_prepareRot)
             : Quaternion.Euler(_idleRot);
     }
+
+
 
     public async UniTask CheckCollision(Collider other)
     {
