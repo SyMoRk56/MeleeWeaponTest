@@ -20,6 +20,7 @@ public abstract class HoldableItem : MonoBehaviour
     protected Vector2 _rawMouseDelta;
     protected Vector2 _smoothedMouseDelta;
     protected bool _canMove = true;
+
     [Inject]
     public virtual void Construct(PlayerManager manager)
     {
@@ -41,11 +42,9 @@ public abstract class HoldableItem : MonoBehaviour
 
             float deltaX = _input.MouseAxis.x * _mouseSensitivity;
             float deltaY = _input.MouseAxis.y * _mouseSensitivity;
-            
 
             _rawMouseDelta.x = Mathf.Clamp(_rawMouseDelta.x + deltaX, -90, 90);
             _rawMouseDelta.y = Mathf.Clamp(_rawMouseDelta.y + deltaY, -180, 180);
-            
         }
         else
         {
@@ -68,12 +67,15 @@ public abstract class HoldableItem : MonoBehaviour
 
     protected virtual void ApplyBaseTransform()
     {
-        Vector3 targetPos = (CurrentState == EItemState.Idle) ? _idlePos : _preparePos;
-        Quaternion targetRot = CalculateTargetRotation();
         if (!_canMove)
             return;
+
+        Vector3 targetPos = (CurrentState == EItemState.Idle) ? _idlePos : _preparePos;
+        Quaternion targetRot = CalculateTargetRotation();
+
         transform.localPosition = Vector3.Lerp(transform.localPosition, targetPos, Time.deltaTime * _lerpSpeed);
         transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRot, Time.deltaTime * _lerpSpeed);
     }
+
     protected abstract Quaternion CalculateTargetRotation();
 }

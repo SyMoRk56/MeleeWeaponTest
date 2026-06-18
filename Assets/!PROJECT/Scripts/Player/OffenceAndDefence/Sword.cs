@@ -17,6 +17,7 @@ public class Sword : HoldableItem
     private Quaternion _lastTipRotation;
     private float _currentZ;
     private float _zVelocity;
+    private float _angularSpeed;
 
     [Inject]
     public void Construct(PlayerManager manager, MHCutter cutter)
@@ -28,22 +29,49 @@ public class Sword : HoldableItem
     private void Start()
     {
         if (_tip)
+        {
             _lastTipPosition = _tip.position;
+            _preLastTipPosition = _tip.position;
+        }
     }
 
     protected override void Update()
     {
         base.Update();
 
-        if (_tip)
-        {
-            _preLastTipPosition = _lastTipPosition;
-            _lastTipPosition = _tip.position;
-            _lastTipRotation = _tip.rotation;
-        }
-
         if (_bladeCollider)
             _bladeCollider.enabled = (CurrentState == EItemState.Active);
+    }
+
+    private void FixedUpdate()
+    {
+        if (!_tip)
+            return;
+
+        _preLastTipPosition = _lastTipPosition;
+        _lastTipPosition = _tip.position;
+        _lastTipRotation = _tip.rotation;
+
+        _angularSpeed = (_lastTipPosition - _preLastTipPosition).magnitude / Time.fixedDeltaTime;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Slicable"))
+            return;
+        if (CurrentState != EItemState.Active)
+            return;
+
+        Vector3 moveDirection = (_lastTipPosition - _preLastTipPosition).normalized;
+        float dotProduct = Mathf.Abs(Vector2.Dot(moveDirection, _tip.right));
+
+        if (_angularSpeed < _minSliceVelocity)
+            return;
+        if (dotProduct > 0.3f)
+            return;
+
+        LockMovement(0.1f).Forget();
+        _cutter.Cut(other.gameObject, _tip.position, _tip.right);
     }
 
     protected override void HandleInput()
@@ -79,8 +107,6 @@ public class Sword : HoldableItem
         _smoothedMouseDelta = Vector2.Lerp(_smoothedMouseDelta, _rawMouseDelta, Time.deltaTime * _weightIntensity);
     }
 
-
-
     protected override Quaternion CalculateTargetRotation()
     {
         if (CurrentState == EItemState.Active)
@@ -108,10 +134,7 @@ public class Sword : HoldableItem
             ? Quaternion.Euler(_prepareRot)
             : Quaternion.Euler(_idleRot);
     }
-
-
-
-    public async UniTask CheckCollision(Collider other)
+    public void CheckCollision(Collider other)
     {
         if (other.CompareTag("Slicable"))
         {
@@ -119,9 +142,9 @@ public class Sword : HoldableItem
                 return;
             var angularSpeed = (_tip.position - _preLastTipPosition).magnitude / Time.deltaTime;
             var dotProduct = Mathf.Abs(Vector2.Dot((_tip.position - _preLastTipPosition).normalized, _tip.right));
-            
+
             Debug.Log("Sword slice: " + "Angular Speed: " + angularSpeed + " " + "Hit flatness: " + dotProduct);
-            
+
             if (angularSpeed < _minSliceVelocity)
                 return;
             if (dotProduct > 0.3f)
@@ -131,11 +154,14 @@ public class Sword : HoldableItem
             _cutter.Cut(other.gameObject, _tip.position, _tip.right);
         }
     }
-    protected async virtual UniTask LockMovement(float secs)
+    protected async UniTaskVoid LockMovement(float secs)
     {
         _canMove = false;
         _rawMouseDelta = Vector2.zero;
         await UniTask.WaitForSeconds(secs);
         _canMove = true;
+
     }
+
 }
+

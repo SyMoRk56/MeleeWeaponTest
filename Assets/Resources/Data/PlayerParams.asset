@@ -43,4 +43,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   accelerationTime: 0.3
-  sensitivity: {x: 100, y: 100}
+  sensitivity: {x: 1.5, y: 1}

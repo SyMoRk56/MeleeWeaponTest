@@ -18,8 +18,8 @@ namespace Game
         }
         private void Update()
         {
-            float mouseX = _input.MouseAxis.x * Time.deltaTime * _params.sensitivity.x;
-            float mouseY = _input.MouseAxis.y * Time.deltaTime * _params.sensitivity.y;
+            float mouseX = _input.MouseAxis.x * _params.sensitivity.x;
+            float mouseY = _input.MouseAxis.y * _params.sensitivity.y;
 
             _yRotation += mouseX;
             _xRotation -= mouseY;
