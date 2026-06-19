@@ -6,12 +6,10 @@ using Zenject;
 
 public class Sword : HoldableItem
 {
-    [Header("Sword Specific")]
     [SerializeField] private Transform _tip;
     [SerializeField] private Collider _bladeCollider;
     [SerializeField] private float _minSliceVelocity = 2.0f;
     [SerializeField] private float _topThreshold = 30f;
-
     private MHCutter _cutter;
     private Vector3 _lastTipPosition, _preLastTipPosition;
     private Quaternion _lastTipRotation;
@@ -59,19 +57,10 @@ public class Sword : HoldableItem
     {
         if (!other.CompareTag("Slicable"))
             return;
-        if (CurrentState != EItemState.Active)
-            return;
-
-        Vector3 moveDirection = (_lastTipPosition - _preLastTipPosition).normalized;
-        float dotProduct = Mathf.Abs(Vector2.Dot(moveDirection, _tip.right));
-
-        if (_angularSpeed < _minSliceVelocity)
-            return;
-        if (dotProduct > 0.3f)
-            return;
-
-        LockMovement(0.1f).Forget();
-        _cutter.Cut(other.gameObject, _tip.position, _tip.right);
+        if (!Slice(other.gameObject))
+        {
+            LockMovement(.2f).Forget();
+        }
     }
 
     protected override void HandleInput()
@@ -121,10 +110,10 @@ public class Sword : HoldableItem
             float totalMovement = Mathf.Abs(movementDelta.x) + Mathf.Abs(movementDelta.y) + 0.0001f;
             float horizontalRatio = Mathf.Abs(movementDelta.x) / totalMovement;
 
-            float sharpRatio = horizontalRatio * horizontalRatio * (3f - 2f * horizontalRatio);
+            float sharpRatio = Mathf.Clamp01((horizontalRatio*1.4f)-.4f);
             float finalZ = Mathf.Lerp(0f, -90f, sharpRatio);
 
-
+            print(sharpRatio);
             return Quaternion.Euler(
                 _prepareRot.x - _smoothedMouseDelta.y,
                 _prepareRot.y + _smoothedMouseDelta.x,
@@ -140,21 +129,29 @@ public class Sword : HoldableItem
     {
         if (other.CompareTag("Slicable"))
         {
-            if (CurrentState != EItemState.Active)
-                return;
-            var angularSpeed = (_tip.position - _preLastTipPosition).magnitude / Time.deltaTime;
-            var dotProduct = Mathf.Abs(Vector2.Dot((_tip.position - _preLastTipPosition).normalized, _tip.right));
-
-            Debug.Log("Sword slice: " + "Angular Speed: " + angularSpeed + " " + "Hit flatness: " + dotProduct);
-
-            if (angularSpeed < _minSliceVelocity)
-                return;
-            if (dotProduct > 0.4f)
-                return;
-            LockMovement(0.1f).Forget();
-
-            _cutter.Cut(other.gameObject, _tip.position, _tip.right);
+            if (!Slice(other.gameObject))
+            {
+                LockMovement(.2f).Forget();
+            }
         }
+    }
+    private bool Slice(GameObject go)
+    {
+        if (CurrentState != EItemState.Active)
+            return false;
+        var angularSpeed = (_tip.position - _preLastTipPosition).magnitude / Time.deltaTime;
+        var dotProduct = Mathf.Abs(Vector2.Dot((_tip.position - _preLastTipPosition).normalized, _tip.right));
+
+        Debug.Log("Sword slice: " + "Angular Speed: " + angularSpeed + " " + "Hit flatness: " + dotProduct);
+
+        if (angularSpeed < _minSliceVelocity)
+            return false;
+        if (dotProduct > 0.4f)
+            return false;
+        LockMovement(0.51f).Forget();
+
+        _cutter.Cut(go, _tip.position, _tip.right);
+        return true;
     }
     protected async UniTaskVoid LockMovement(float secs)
     {

@@ -332,7 +332,7 @@ MonoBehaviour:
   _weightIntensity: 6.21
   _tip: {fileID: 1004115044}
   _bladeCollider: {fileID: 853794546}
-  _minSliceVelocity: 2
+  _minSliceVelocity: 5
   _topThreshold: 90
 --- !u!1001 &229109556
 PrefabInstance:
